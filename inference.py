@@ -1,17 +1,24 @@
 import os
 import asyncio
+import requests
 from openai import OpenAI
 
-# ✅ ENV VARIABLES (MANDATORY)
+# =========================
+# ✅ ENV VARIABLES
+# =========================
 API_BASE_URL = os.getenv("API_BASE_URL", "https://dummy-api.com")
 MODEL_NAME = os.getenv("MODEL_NAME", "dummy-model")
-HF_TOKEN = os.getenv("HF_TOKEN")  # no default
+HF_TOKEN = os.getenv("HF_TOKEN")
 
-# ✅ OpenAI client (safe even if dummy)
+# 🔥 YOUR HF SPACE URL (IMPORTANT)
+BASE_URL = "https://jash-ai-email-env-openenv.hf.space"
+
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 
-# ✅ fallback agent (your improved logic)
+# =========================
+# ✅ FALLBACK CLASSIFIER
+# =========================
 def fallback_agent(email):
     text = (email["subject"] + " " + email["body"]).lower()
 
@@ -29,8 +36,10 @@ def fallback_agent(email):
         return "normal"
 
 
-# ✅ LLM + fallback (CRITICAL FUNCTION)
-def simple_agent(email):
+# =========================
+# ✅ LLM + FALLBACK
+# =========================
+def classify_email(email):
     try:
         response = client.chat.completions.create(
             model=MODEL_NAME,
@@ -51,35 +60,92 @@ def simple_agent(email):
             return fallback_agent(email)
 
     except Exception:
-        # ✅ SAFE FALLBACK (VERY IMPORTANT)
         return fallback_agent(email)
 
 
+# =========================
+# ✅ PRIORITY + RESPONSE
+# =========================
+def get_priority(label):
+    if label == "urgent":
+        return "high"
+    elif label == "spam":
+        return "low"
+    return "medium"
+
+
+def generate_response(label):
+    if label == "urgent":
+        return "Acknowledged. I will address this immediately."
+    elif label == "spam":
+        return "This email has been marked as spam."
+    return "Thank you for your email. I will review it."
+
+
+# =========================
+# 🚀 MAIN AGENT LOOP
+# =========================
 async def main():
     print("[START]")
 
-    emails = [
-        {"id": 1, "subject": "Win a free iPhone!!!", "body": "Click here"},
-        {"id": 2, "subject": "Meeting at 3 PM", "body": "Important meeting"},
-        {"id": 3, "subject": "Newsletter", "body": "Weekly updates"}
-    ]
+    # 🔥 RESET ENVIRONMENT
+    reset = requests.get(f"{BASE_URL}/reset").json()
+    emails = reset["observation"]["emails"]
 
-    rewards = []
-    valid_labels = ["spam", "urgent", "normal"]
+    total_rewards = []
+    step_count = 0
 
-    for step, email in enumerate(emails):
-        prediction = simple_agent(email)
+    for email in emails:
+        email_id = email["id"]
 
-        reward = 0.3 if prediction in valid_labels else -0.2
-        done = step == len(emails) - 1
+        # =====================
+        # 1. CLASSIFY
+        # =====================
+        label = classify_email(email)
 
-        print(f"[STEP] step={step} action={prediction} reward={reward} done={done}")
+        res = requests.post(f"{BASE_URL}/step", json={
+            "action_type": "classify",
+            "email_id": email_id,
+            "label": label
+        }).json()
 
-        rewards.append(reward)
+        print(f"[STEP] step={step_count} action={label} reward={res['reward']} done={res['done']}")
+        total_rewards.append(res["reward"])
+        step_count += 1
 
-    score = sum(rewards) / len(rewards)
+        # =====================
+        # 2. PRIORITIZE
+        # =====================
+        priority = get_priority(label)
 
-    print(f"[END] success=True steps={len(emails)} score={score} rewards={rewards}")
+        res = requests.post(f"{BASE_URL}/step", json={
+            "action_type": "prioritize",
+            "email_id": email_id,
+            "priority": priority
+        }).json()
+
+        print(f"[STEP] step={step_count} action=prioritize reward={res['reward']} done={res['done']}")
+        total_rewards.append(res["reward"])
+        step_count += 1
+
+        # =====================
+        # 3. RESPOND
+        # =====================
+        response_text = generate_response(label)
+
+        res = requests.post(f"{BASE_URL}/step", json={
+            "action_type": "respond",
+            "email_id": email_id,
+            "response": response_text
+        }).json()
+
+        print(f"[STEP] step={step_count} action=respond reward={res['reward']} done={res['done']}")
+        total_rewards.append(res["reward"])
+        step_count += 1
+
+    score = sum(total_rewards) / len(total_rewards)
+
+    print(f"[END] success=True steps={step_count} score={score} rewards={total_rewards}")
 
 
 if __name__ == "__main__":
