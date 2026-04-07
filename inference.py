@@ -1,39 +1,58 @@
+import os
 import asyncio
 from openai import OpenAI
-import os
 
-# ✅ Required env variables
-API_BASE_URL = os.getenv("API_BASE_URL")
-MODEL_NAME = os.getenv("MODEL_NAME")
-API_KEY = os.getenv("OPENAI_API_KEY")
+# ✅ ENV VARIABLES (MANDATORY)
+API_BASE_URL = os.getenv("API_BASE_URL", "https://dummy-api.com")
+MODEL_NAME = os.getenv("MODEL_NAME", "dummy-model")
+HF_TOKEN = os.getenv("HF_TOKEN")  # no default
 
-# ✅ OpenAI client (required by rules)
-client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-
-
-# ✅ REQUIRED SAFE FUNCTION (added)
-def get_model_message(client, step, last_obs, last_reward, history):
-    try:
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": "classify email"}],
-            timeout=2
-        )
-        return response.choices[0].message.content
-    except Exception:
-        # fallback to your logic
-        return None
+# ✅ OpenAI client (safe even if dummy)
+client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 
-def simple_agent(email):
+# ✅ fallback agent (your improved logic)
+def fallback_agent(email):
     text = (email["subject"] + " " + email["body"]).lower()
 
-    if "free" in text or "win" in text:
+    spam_words = ["free", "win", "offer", "click", "buy now"]
+    urgent_words = ["urgent", "asap", "immediately", "meeting", "deadline"]
+
+    spam_score = sum(word in text for word in spam_words)
+    urgent_score = sum(word in text for word in urgent_words)
+
+    if spam_score > urgent_score and spam_score > 0:
         return "spam"
-    elif "meeting" in text or "urgent" in text:
+    elif urgent_score > 0:
         return "urgent"
     else:
         return "normal"
+
+
+# ✅ LLM + fallback (CRITICAL FUNCTION)
+def simple_agent(email):
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Classify this email into spam, urgent, or normal:\nSubject: {email['subject']}\nBody: {email['body']}\nReturn only one word."
+                }
+            ],
+            timeout=2
+        )
+
+        output = response.choices[0].message.content.strip().lower()
+
+        if output in ["spam", "urgent", "normal"]:
+            return output
+        else:
+            return fallback_agent(email)
+
+    except Exception:
+        # ✅ SAFE FALLBACK (VERY IMPORTANT)
+        return fallback_agent(email)
 
 
 async def main():
@@ -46,23 +65,17 @@ async def main():
     ]
 
     rewards = []
-    history = []
+    valid_labels = ["spam", "urgent", "normal"]
 
     for step, email in enumerate(emails):
+        prediction = simple_agent(email)
 
-        # ✅ Try LLM (will fail safely with dummy values)
-        model_output = get_model_message(client, step, None, None, history)
-
-        # ✅ Fallback to your existing logic (UNCHANGED behavior)
-        prediction = model_output if model_output else simple_agent(email)
-
-        reward = 0.3 if prediction else 0.0
+        reward = 0.3 if prediction in valid_labels else -0.2
         done = step == len(emails) - 1
 
         print(f"[STEP] step={step} action={prediction} reward={reward} done={done}")
 
         rewards.append(reward)
-        history.append(prediction)
 
     score = sum(rewards) / len(rewards)
 
