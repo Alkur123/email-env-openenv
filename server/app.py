@@ -7,7 +7,9 @@ app = FastAPI()
 env = EmailEnv()
 
 
+# ✅ FIX: support BOTH GET and POST
 @app.get("/reset")
+@app.post("/reset")
 def reset():
     obs = env.reset()
     return {"observation": obs.dict(), "done": False}
