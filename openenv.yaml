@@ -1,0 +1,8 @@
+name: email_triage_env
+version: 1.0
+entry_point: env.environment:EmailEnv
+
+tasks:
+  - easy
+  - medium
+  - hard
