@@ -1,23 +1,29 @@
 [
     {
         "id": 1,
+        "task_id": "task_1_classify_spam",
         "subject": "Win a free iPhone!!!",
         "body": "Click here to claim prize",
         "true_label": "spam",
-        "priority": "low"
+        "priority": "low",
+        "expected_response": "This email has been marked as spam."
     },
     {
         "id": 2,
+        "task_id": "task_2_urgent_meeting",
         "subject": "Meeting at 3 PM",
         "body": "Important client meeting",
         "true_label": "urgent",
-        "priority": "high"
+        "priority": "high",
+        "expected_response": "Acknowledged. I will address this immediately."
     },
     {
         "id": 3,
+        "task_id": "task_3_normal_newsletter",
         "subject": "Weekly newsletter",
         "body": "Updates from company",
         "true_label": "normal",
-        "priority": "medium"
+        "priority": "medium",
+        "expected_response": "Thank you for your email. I will review it."
     }
 ]
