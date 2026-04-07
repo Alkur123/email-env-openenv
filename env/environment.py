@@ -6,7 +6,7 @@ from .models import Observation, Action, State, Email
 class EmailEnv:
 
     def __init__(self):
-        self._state = None   # renamed to avoid conflict with state() method
+        self._state = None
         self.done = False
 
     def reset(self) -> Observation:
@@ -33,7 +33,6 @@ class EmailEnv:
         reward = 0.0
         info = {}
 
-        # ✅ Safe lookup using object attributes
         email = next(
             (e for e in self._state.emails if e.id == action.email_id),
             None
@@ -50,35 +49,54 @@ class EmailEnv:
                 {}
             )
 
-        # ✅ Classification reward
+        # =========================
+        # ✅ TASK 1: CLASSIFICATION GRADER
+        # =========================
         if action.action_type == "classify":
             if action.label == email.true_label:
-                reward += 0.3
+                reward = 0.3
+                info = {"task": "classification", "result": "correct"}
             else:
-                reward -= 0.2
+                reward = -0.2
+                info = {"task": "classification", "result": "wrong"}
 
-        # ✅ Priority reward
+        # =========================
+        # ✅ TASK 2: PRIORITY GRADER
+        # =========================
         elif action.action_type == "prioritize":
             if action.priority == email.priority:
-                reward += 0.2
+                reward = 0.2
+                info = {"task": "prioritization", "result": "correct"}
             else:
-                reward -= 0.1
+                reward = -0.1
+                info = {"task": "prioritization", "result": "wrong"}
 
-        # ✅ Response reward
+        # =========================
+        # ✅ TASK 3: RESPONSE GRADER
+        # =========================
         elif action.action_type == "respond":
-            if action.response:
-                reward += 0.1
+            if (
+                isinstance(action.response, str)
+                and len(action.response) > 5
+            ):
+                reward = 0.1
+                info = {"task": "response", "result": "valid"}
+            else:
+                reward = -0.05
+                info = {"task": "response", "result": "invalid"}
 
         else:
-            reward -= 0.1  # penalty for invalid action
+            reward = -0.1
+            info = {"task": "invalid", "result": "error"}
 
-        # ✅ Update state safely
+        # =========================
+        # STATE UPDATE
+        # =========================
         self._state.score += reward
 
         if email.id not in self._state.processed_ids:
             self._state.processed_ids.append(email.id)
 
-        # ✅ Done condition
         if len(self._state.processed_ids) >= len(self._state.emails):
             self.done = True
 
@@ -92,5 +110,6 @@ class EmailEnv:
             info
         )
 
+    # ✅ STATE FUNCTION (FIXED)
     def state(self):
         return self._state
