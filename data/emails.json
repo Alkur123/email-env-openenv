@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "subject": "Win a free iPhone!!!",
+        "body": "Click here to claim prize",
+        "true_label": "spam",
+        "priority": "low"
+    },
+    {
+        "id": 2,
+        "subject": "Meeting at 3 PM",
+        "body": "Important client meeting",
+        "true_label": "urgent",
+        "priority": "high"
+    },
+    {
+        "id": 3,
+        "subject": "Weekly newsletter",
+        "body": "Updates from company",
+        "true_label": "normal",
+        "priority": "medium"
+    }
+]
