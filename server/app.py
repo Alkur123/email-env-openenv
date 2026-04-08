@@ -7,12 +7,35 @@ app = FastAPI()
 env = EmailEnv()
 
 
-# ✅ FIX: support BOTH GET and POST
+# ✅ FIX: support BOTH GET and POST + expose tasks
 @app.get("/reset")
 @app.post("/reset")
 def reset():
     obs = env.reset()
-    return {"observation": obs.dict(), "done": False}
+
+    return {
+        "observation": obs.dict(),
+        "done": False,
+
+        # ✅ CRITICAL: expose tasks with graders
+        "tasks": [
+            {
+                "id": "classification",
+                "type": "classification",
+                "grader": "grade_easy"
+            },
+            {
+                "id": "prioritization",
+                "type": "prioritization",
+                "grader": "grade_medium"
+            },
+            {
+                "id": "response",
+                "type": "response",
+                "grader": "grade_hard"
+            }
+        ]
+    }
 
 
 @app.post("/step")
