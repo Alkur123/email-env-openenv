@@ -1,16 +1,17 @@
 name: email_triage_env
 version: 1.0
+
 entry_point: env.environment:EmailEnv
 
 tasks:
-  - task_id: classification
-    description: Classify emails into spam, urgent, or normal
-    action_type: classify
+  - id: classification
+    type: classification
+    grader: env.graders:grade_easy
 
-  - task_id: prioritization
-    description: Assign priority to emails
-    action_type: prioritize
+  - id: prioritization
+    type: prioritization
+    grader: env.graders:grade_medium
 
-  - task_id: response
-    description: Generate appropriate response for emails
-    action_type: respond
+  - id: response
+    type: response
+    grader: env.graders:grade_hard
