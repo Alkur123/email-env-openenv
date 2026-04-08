@@ -1,4 +1,3 @@
-
 import json
 from typing import Tuple
 from .models import Observation, Action, State, Email
@@ -24,25 +23,6 @@ class EmailEnv:
             processed_ids=[],
             score=0.0
         )
-
-        # ✅ FINAL FIX: tasks WITH graders attached
-        self.tasks = [
-            {
-                "task_id": "task_classification",
-                "type": "classification",
-                "grader": grade_easy
-            },
-            {
-                "task_id": "task_prioritization",
-                "type": "prioritization",
-                "grader": grade_medium
-            },
-            {
-                "task_id": "task_response",
-                "type": "response",
-                "grader": grade_hard
-            }
-        ]
 
         self.done = False
 
@@ -139,5 +119,17 @@ class EmailEnv:
             info
         )
 
+    # ✅ NEW: compute scores using graders
+    def compute_scores(self):
+        return {
+            "classification": grade_easy(self._state),
+            "prioritization": grade_medium(self._state),
+            "response": grade_hard(self._state),
+        }
+
+    # ✅ UPDATED: return scores along with state
     def state(self):
-        return self._state
+        return {
+            **self._state.dict(),
+            "scores": self.compute_scores()
+        }
