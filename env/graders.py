@@ -1,63 +1,64 @@
-def clamp_score(value: float) -> float:
-    """
-    Ensure score is strictly between (0,1)
-    """
-    if value <= 0.0:
+def safe_div(num, denom):
+    if denom == 0:
+        return 0.5
+    return float(num) / float(denom)
+
+
+def clamp_score(x):
+    try:
+        x = float(x)
+    except Exception:
         return 0.01
-    elif value >= 1.0:
+
+    if x <= 0.0:
+        return 0.01
+    if x >= 1.0:
         return 0.99
-    return value
+    return x
 
 
-# =========================
-# ✅ EASY TASK (Classification)
-# =========================
 def grade_easy(state):
+    emails = getattr(state, "emails", [])
+    total = len(emails)
     correct = 0
-    total = len(state.emails)
 
-    for e in state.emails:
-        if hasattr(e, "predicted_label") and e.predicted_label == e.true_label:
+    for e in emails:
+        if getattr(e, "predicted_label", None) == getattr(e, "true_label", None):
             correct += 1
 
-    score = correct / total if total > 0 else 0.0
+    score = safe_div(correct, total)
     return clamp_score(score)
 
 
-# =========================
-# ✅ MEDIUM TASK (Classification + Priority)
-# =========================
 def grade_medium(state):
+    emails = getattr(state, "emails", [])
+    total = len(emails)
     score = 0
-    total = len(state.emails)
 
-    for e in state.emails:
-        if hasattr(e, "predicted_label") and e.predicted_label == e.true_label:
+    for e in emails:
+        if getattr(e, "predicted_label", None) == getattr(e, "true_label", None):
+            score += 1
+        if getattr(e, "predicted_priority", None) == getattr(e, "priority", None):
             score += 1
 
-        if hasattr(e, "predicted_priority") and e.predicted_priority == e.priority:
-            score += 1
-
-    final_score = score / (2 * total) if total > 0 else 0.0
-    return clamp_score(final_score)
+    score = safe_div(score, 2 * total)
+    return clamp_score(score)
 
 
-# =========================
-# ✅ HARD TASK (Classification + Priority + Response)
-# =========================
 def grade_hard(state):
+    emails = getattr(state, "emails", [])
+    total = len(emails)
     score = 0
-    total = len(state.emails)
 
-    for e in state.emails:
-        if hasattr(e, "predicted_label") and e.predicted_label == e.true_label:
+    for e in emails:
+        if getattr(e, "predicted_label", None) == getattr(e, "true_label", None):
+            score += 1
+        if getattr(e, "predicted_priority", None) == getattr(e, "priority", None):
             score += 1
 
-        if hasattr(e, "predicted_priority") and e.predicted_priority == e.priority:
+        response = getattr(e, "predicted_response", None)
+        if isinstance(response, str) and len(response) > 5:
             score += 1
 
-        if hasattr(e, "predicted_response") and isinstance(e.predicted_response, str) and len(e.predicted_response) > 5:
-            score += 1
-
-    final_score = score / (3 * total) if total > 0 else 0.0
-    return clamp_score(final_score)
+    score = safe_div(score, 3 * total)
+    return clamp_score(score)
