@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from env.environment import EmailEnv
 from env.models import Action
-from env.graders import grade_easy, grade_medium, grade_hard  # ✅ IMPORTANT
 import uvicorn
 
 app = FastAPI()
@@ -18,7 +17,7 @@ def reset():
         "observation": obs.dict(),
         "done": False,
 
-        # ✅ CRITICAL: expose tasks with graders
+        # ✅ expose tasks with graders
         "tasks": [
             {
                 "id": "classification",
@@ -55,21 +54,10 @@ def step(action: Action):
     }
 
 
-# ✅ STATE (🔥 FINAL FIX: EXPOSE SCORES)
+# ✅ STATE (🔥 FIXED — NO MANUAL GRADER CALLS)
 @app.get("/state")
 def state():
-    current_state = env.state()
-
-    scores = {
-        "classification": grade_easy(current_state),
-        "prioritization": grade_medium(current_state),
-        "response": grade_hard(current_state)
-    }
-
-    return {
-        "state": current_state.dict(),
-        "scores": scores
-    }
+    return env.state()   # ✅ JUST RETURN THIS
 
 
 # ✅ REQUIRED MAIN FUNCTION
