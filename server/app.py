@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from env.environment import EmailEnv
 from env.models import Action
+from env.graders import grade_easy, grade_medium, grade_hard  # ✅ IMPORTANT
 import uvicorn
 
 app = FastAPI()
 env = EmailEnv()
 
 
-# ✅ FIX: support BOTH GET and POST + expose tasks
+# ✅ RESET (WITH TASKS)
 @app.get("/reset")
 @app.post("/reset")
 def reset():
@@ -38,6 +39,7 @@ def reset():
     }
 
 
+# ✅ STEP
 @app.post("/step")
 def step(action: Action):
     if env._state is None:
@@ -53,9 +55,21 @@ def step(action: Action):
     }
 
 
+# ✅ STATE (🔥 FINAL FIX: EXPOSE SCORES)
 @app.get("/state")
 def state():
-    return env.state().dict()
+    current_state = env.state()
+
+    scores = {
+        "classification": grade_easy(current_state),
+        "prioritization": grade_medium(current_state),
+        "response": grade_hard(current_state)
+    }
+
+    return {
+        "state": current_state.dict(),
+        "scores": scores
+    }
 
 
 # ✅ REQUIRED MAIN FUNCTION
