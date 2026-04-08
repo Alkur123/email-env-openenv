@@ -7,7 +7,7 @@ app = FastAPI()
 env = EmailEnv()
 
 
-# ✅ RESET (WITH TASKS)
+# ✅ RESET (FINAL FIX — NO GRADERS HERE)
 @app.get("/reset")
 @app.post("/reset")
 def reset():
@@ -17,23 +17,11 @@ def reset():
         "observation": obs.dict(),
         "done": False,
 
-        # ✅ expose tasks with graders
+        # ✅ ONLY TASK IDS
         "tasks": [
-            {
-                "id": "classification",
-                "type": "classification",
-                "grader": "env.graders:grade_easy"
-            },
-            {
-                "id": "prioritization",
-                "type": "prioritization",
-                "grader": "env.graders:grade_medium"
-            },
-            {
-                "id": "response",
-                "type": "response",
-                "grader": "env.graders:grade_hard"
-            }
+            {"id": "classification"},
+            {"id": "prioritization"},
+            {"id": "response"}
         ]
     }
 
@@ -54,10 +42,10 @@ def step(action: Action):
     }
 
 
-# ✅ STATE (🔥 FIXED — NO MANUAL GRADER CALLS)
+# ✅ STATE
 @app.get("/state")
 def state():
-    return env.state()   # ✅ JUST RETURN THIS
+    return env.state()
 
 
 # ✅ REQUIRED MAIN FUNCTION
