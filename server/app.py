@@ -23,17 +23,17 @@ def reset():
             {
                 "id": "classification",
                 "type": "classification",
-                "grader": "grade_easy"
+                "grader": "env.graders:grade_easy"
             },
             {
                 "id": "prioritization",
                 "type": "prioritization",
-                "grader": "grade_medium"
+                "grader": "env.graders:grade_medium"
             },
             {
                 "id": "response",
                 "type": "response",
-                "grader": "grade_hard"
+                "grader": "env.graders:grade_hard"
             }
         ]
     }
