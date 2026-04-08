@@ -5,13 +5,10 @@ entry_point: env.environment:EmailEnv
 
 tasks:
   - task_id: classification
-    type: classification
     grader: env.graders:grade_easy
 
   - task_id: prioritization
-    type: prioritization
     grader: env.graders:grade_medium
 
   - task_id: response
-    type: response
     grader: env.graders:grade_hard
