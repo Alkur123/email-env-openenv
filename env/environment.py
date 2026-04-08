@@ -1,8 +1,9 @@
+
 import json
 from typing import Tuple
 from .models import Observation, Action, State, Email
 
-# ✅ ADD THIS
+# ✅ import graders
 from .graders import grade_easy, grade_medium, grade_hard
 
 
@@ -24,19 +25,24 @@ class EmailEnv:
             score=0.0
         )
 
-        # ✅ REQUIRED: 3 TASKS DECLARED
+        # ✅ FINAL FIX: tasks WITH graders attached
         self.tasks = [
-            {"task_id": "task_classification", "type": "classification"},
-            {"task_id": "task_prioritization", "type": "prioritization"},
-            {"task_id": "task_response", "type": "response"}
+            {
+                "task_id": "task_classification",
+                "type": "classification",
+                "grader": grade_easy
+            },
+            {
+                "task_id": "task_prioritization",
+                "type": "prioritization",
+                "grader": grade_medium
+            },
+            {
+                "task_id": "task_response",
+                "type": "response",
+                "grader": grade_hard
+            }
         ]
-
-        # ✅ ADD THIS (CONNECT GRADERS)
-        self.graders = {
-            "easy": grade_easy,
-            "medium": grade_medium,
-            "hard": grade_hard
-        }
 
         self.done = False
 
@@ -47,7 +53,7 @@ class EmailEnv:
 
     def step(self, action: Action) -> Tuple[Observation, float, bool, dict]:
 
-        reward = 0.0
+        reward = 0.5  # ✅ safe default (inside 0–1)
         info = {}
 
         email = next(
@@ -61,7 +67,7 @@ class EmailEnv:
                     emails=self._state.emails,
                     last_action_result="Invalid ID"
                 ),
-                0.0,
+                0.1,
                 False,
                 {"error": "invalid_id"}
             )
@@ -70,46 +76,46 @@ class EmailEnv:
         # TASK 1: CLASSIFICATION
         # =========================
         if action.action_type == "classify":
-            # ✅ STORE PREDICTION
+
             email.predicted_label = action.label
 
             if action.label == email.true_label:
-                reward = 1.0
+                reward = 0.9
                 info = {"task": "classification", "result": "correct"}
             else:
-                reward = 0.0
+                reward = 0.1
                 info = {"task": "classification", "result": "wrong"}
 
         # =========================
         # TASK 2: PRIORITIZATION
         # =========================
         elif action.action_type == "prioritize":
-            # ✅ STORE PREDICTION
+
             email.predicted_priority = action.priority
 
             if action.priority == email.priority:
-                reward = 1.0
+                reward = 0.8
                 info = {"task": "prioritization", "result": "correct"}
             else:
-                reward = 0.0
+                reward = 0.2
                 info = {"task": "prioritization", "result": "wrong"}
 
         # =========================
         # TASK 3: RESPONSE
         # =========================
         elif action.action_type == "respond":
-            # ✅ STORE PREDICTION
+
             email.predicted_response = action.response
 
             if isinstance(action.response, str) and len(action.response) > 5:
-                reward = 1.0
+                reward = 0.7
                 info = {"task": "response", "result": "valid"}
             else:
-                reward = 0.0
+                reward = 0.3
                 info = {"task": "response", "result": "invalid"}
 
         else:
-            reward = 0.0
+            reward = 0.1
             info = {"task": "invalid", "result": "error"}
 
         # =========================
