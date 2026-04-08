@@ -15,11 +15,11 @@ def grade_medium(state):
 
     for e in state.emails:
         if hasattr(e, "predicted_label") and e.predicted_label == e.true_label:
-            score += 0.5
+            score += 1
         if hasattr(e, "predicted_priority") and e.predicted_priority == e.priority:
-            score += 0.5
+            score += 1
 
-    return score / total
+    return score / (2 * total) if total > 0 else 0.0
 
 
 def grade_hard(state):
@@ -28,10 +28,10 @@ def grade_hard(state):
 
     for e in state.emails:
         if hasattr(e, "predicted_label") and e.predicted_label == e.true_label:
-            score += 0.4
+            score += 1
         if hasattr(e, "predicted_priority") and e.predicted_priority == e.priority:
-            score += 0.3
-        if hasattr(e, "response"):
-            score += 0.3
+            score += 1
+        if hasattr(e, "predicted_response") and len(e.predicted_response) > 5:
+            score += 1
 
-    return score / total
+    return score / (3 * total) if total > 0 else 0.0
