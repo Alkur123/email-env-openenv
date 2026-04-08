@@ -3,6 +3,14 @@ version: 1.0
 entry_point: env.environment:EmailEnv
 
 tasks:
-  - easy
-  - medium
-  - hard
+  - task_id: classification
+    description: Classify emails into spam, urgent, or normal
+    action_type: classify
+
+  - task_id: prioritization
+    description: Assign priority to emails
+    action_type: prioritize
+
+  - task_id: response
+    description: Generate appropriate response for emails
+    action_type: respond
