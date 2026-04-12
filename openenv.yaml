@@ -1,15 +1,16 @@
-#yaml
 name: email_triage_env
 version: 1.0
 
 entry_point: env.environment:EmailEnv
 
+inference: inference.py
+
 tasks:
-  - id: classification
+  - task_id: classification
     grader: env.graders:grade_easy
 
-  - id: prioritization
+  - task_id: prioritization
     grader: env.graders:grade_medium
 
-  - id: response
+  - task_id: response
     grader: env.graders:grade_hard
