@@ -1,14 +1,15 @@
+#yaml
 name: email_triage_env
 version: 1.0
 
 entry_point: env.environment:EmailEnv
 
 tasks:
-  - task_id: classification
+  - id: classification
     grader: env.graders:grade_easy
 
-  - task_id: prioritization
+  - id: prioritization
     grader: env.graders:grade_medium
 
-  - task_id: response
+  - id: response
     grader: env.graders:grade_hard
