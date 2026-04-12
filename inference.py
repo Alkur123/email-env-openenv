@@ -6,11 +6,8 @@ from openai import OpenAI
 # =========================
 # ✅ ENV VARIABLES
 # =========================
-# =========================
-# ✅ ENV VARIABLES
-# =========================
 API_BASE_URL = os.getenv("API_BASE_URL")
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("API_KEY", "dummy_key_if_missing")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 BASE_URL = os.getenv(
     "BASE_URL",
