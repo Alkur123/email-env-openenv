@@ -7,7 +7,7 @@ app = FastAPI()
 env = EmailEnv()
 
 
-# ✅ RESET (FINAL FIX — WITH GRADERS)
+# ✅ RESET (KEEP AS IS)
 @app.get("/reset")
 @app.post("/reset")
 def reset():
@@ -16,8 +16,6 @@ def reset():
     return {
         "observation": obs.dict(),
         "done": False,
-
-        # ✅ MUST include graders (THIS WAS YOUR BLOCKER)
         "tasks": [
             {
                 "id": "classification",
@@ -51,17 +49,10 @@ def step(action: Action):
     }
 
 
-# ✅ STATE (KEEP YOUR FLATTENED VERSION — IT’S CORRECT)
+# ✅ STATE (FINAL FIX — DIRECT RETURN)
 @app.get("/state")
 def state():
-    current = env.state()
-
-    return {
-        "emails": current["state"]["emails"],
-        "processed_ids": current["state"]["processed_ids"],
-        "score": current["state"]["score"],
-        "scores": current["scores"]
-    }
+    return env.state()   # ✅ DO NOT TOUCH STRUCTURE
 
 
 # ✅ REQUIRED MAIN FUNCTION
