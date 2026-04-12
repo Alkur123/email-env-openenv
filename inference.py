@@ -14,17 +14,13 @@ BASE_URL = os.getenv(
     "https://jash-ai-email-env-openenv.hf.space"
 )
 
-client = None
+# ✅ ALWAYS initialize (critical)
+client = OpenAI(
+    base_url=API_BASE_URL,
+    api_key=API_KEY
+)
 
-# ✅ Only initialize if API is available
-if API_BASE_URL and API_KEY:
-    client = OpenAI(
-        base_url=API_BASE_URL,
-        api_key=API_KEY
-    )
-    print("[LLM] Using injected API", flush=True)
-else:
-    print("[LLM FALLBACK] No API found, using fallback", flush=True)
+print(f"[DEBUG] BASE_URL={API_BASE_URL}", flush=True)
 
 
 # =========================
@@ -51,13 +47,8 @@ def fallback_agent(email):
 # ✅ LLM + FALLBACK (FIXED)
 # =========================
 def classify_email(email):
-
-    # ✅ If no client → fallback immediately
-    if client is None:
-        return fallback_agent(email)
-
     try:
-        print("[LLM CALL] Sending request...", flush=True)
+        print("[LLM CALL] Attempting...", flush=True)
 
         response = client.chat.completions.create(
             model=MODEL_NAME,
