@@ -6,13 +6,14 @@ from openai import OpenAI
 # =========================
 # ✅ ENV VARIABLES
 # =========================
-API_BASE_URL = os.getenv("API_BASE_URL", "")
-MODEL_NAME = os.getenv("MODEL_NAME", "")
-HF_TOKEN = os.getenv("HF_TOKEN", "")
+API_BASE_URL = os.getenv("API_BASE_URL")
+API_KEY = os.getenv("API_KEY")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
-# 🔥 YOUR HF SPACE URL (IMPORTANT)
-BASE_URL = "https://jash-ai-email-env-openenv.hf.space"
-
+client = OpenAI(
+    base_url=API_BASE_URL,
+    api_key=API_KEY
+)
 # ✅ SAFE CLIENT INIT (NO CRASH)
 client = None
 if HF_TOKEN and API_BASE_URL and MODEL_NAME:
