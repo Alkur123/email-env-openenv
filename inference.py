@@ -6,6 +6,9 @@ from openai import OpenAI
 # =========================
 # ✅ ENV VARIABLES
 # =========================
+# =========================
+# ✅ ENV VARIABLES
+# =========================
 API_BASE_URL = os.getenv("API_BASE_URL")
 API_KEY = os.getenv("API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
@@ -48,7 +51,9 @@ def fallback_agent(email):
 # =========================
 def classify_email(email):
     try:
-        print("[LLM CALL] Attempting...", flush=True)
+        # ✅ HARD GUARD (CRITICAL)
+        if client is None:
+            raise Exception("LLM not configured")
 
         response = client.chat.completions.create(
             model=MODEL_NAME,
@@ -58,21 +63,19 @@ def classify_email(email):
                     "content": f"Classify this email into spam, urgent, or normal:\nSubject: {email['subject']}\nBody: {email['body']}\nReturn only one word."
                 }
             ],
-            timeout=5
+            timeout=2
         )
 
         output = response.choices[0].message.content.strip().lower()
 
-        print(f"[LLM RESPONSE] {output}", flush=True)
-
         if output in ["spam", "urgent", "normal"]:
             return output
-        else:
-            return fallback_agent(email)
 
     except Exception as e:
-        print(f"[LLM ERROR] {e}", flush=True)
-        return fallback_agent(email)
+        print(f"[LLM FALLBACK] {e}", flush=True)
+
+    # ✅ ALWAYS fallback (NO FAILURE PATH)
+    return fallback_agent(email)
 
 
 # =========================
