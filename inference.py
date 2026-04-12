@@ -9,18 +9,22 @@ from openai import OpenAI
 API_BASE_URL = os.getenv("API_BASE_URL")
 API_KEY = os.getenv("API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
-
-client = OpenAI(
-    base_url=API_BASE_URL,
-    api_key=API_KEY
+BASE_URL = os.getenv(
+    "BASE_URL",
+    "https://jash-ai-email-env-openenv.hf.space"
 )
-# ✅ SAFE CLIENT INIT (NO CRASH)
+
 client = None
-if HF_TOKEN and API_BASE_URL and MODEL_NAME:
-    try:
-        client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
-    except Exception as e:
-        print(f"[DEBUG] OpenAI init failed: {e}", flush=True)
+
+# ✅ Only initialize if API is available
+if API_BASE_URL and API_KEY:
+    client = OpenAI(
+        base_url=API_BASE_URL,
+        api_key=API_KEY
+    )
+    print("[LLM] Using injected API", flush=True)
+else:
+    print("[LLM FALLBACK] No API found, using fallback", flush=True)
 
 
 # =========================
@@ -47,10 +51,13 @@ def fallback_agent(email):
 # ✅ LLM + FALLBACK (FIXED)
 # =========================
 def classify_email(email):
+
+    # ✅ If no client → fallback immediately
+    if client is None:
+        return fallback_agent(email)
+
     try:
-        # ✅ HARD GUARD (CRITICAL)
-        if client is None:
-            raise Exception("LLM not configured")
+        print("[LLM CALL] Sending request...", flush=True)
 
         response = client.chat.completions.create(
             model=MODEL_NAME,
@@ -60,19 +67,21 @@ def classify_email(email):
                     "content": f"Classify this email into spam, urgent, or normal:\nSubject: {email['subject']}\nBody: {email['body']}\nReturn only one word."
                 }
             ],
-            timeout=2
+            timeout=5
         )
 
         output = response.choices[0].message.content.strip().lower()
 
+        print(f"[LLM RESPONSE] {output}", flush=True)
+
         if output in ["spam", "urgent", "normal"]:
             return output
+        else:
+            return fallback_agent(email)
 
     except Exception as e:
-        print(f"[LLM FALLBACK] {e}", flush=True)
-
-    # ✅ ALWAYS fallback (NO FAILURE PATH)
-    return fallback_agent(email)
+        print(f"[LLM ERROR] {e}", flush=True)
+        return fallback_agent(email)
 
 
 # =========================
