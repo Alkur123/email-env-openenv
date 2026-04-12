@@ -2,52 +2,34 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 
-# =========================
-# EMAIL MODEL
-# =========================
 class Email(BaseModel):
     id: int
     subject: str
     body: str
-    true_label: str  # spam / urgent / normal
-    priority: str    # high / medium / low
+    true_label: str
+    priority: str
+    expected_response: str
 
-    # ✅ CRITICAL (YOU WERE MISSING THIS)
-    expected_response: Optional[str] = None
+    # ✅ ADD THESE FIELDS (CRITICAL)
+    predicted_label: Optional[str] = None
+    predicted_priority: Optional[str] = None
+    predicted_response: Optional[str] = None
 
 
-# =========================
-# OBSERVATION MODEL
-# =========================
+class State(BaseModel):
+    emails: List[Email]
+    processed_ids: List[int]
+    score: float
+
+
 class Observation(BaseModel):
     emails: List[Email]
     last_action_result: str
 
 
-# =========================
-# ACTION MODEL
-# =========================
 class Action(BaseModel):
-    action_type: str  # classify / prioritize / respond
+    action_type: str
     email_id: int
-
-    # ✅ MUST stay optional
     label: Optional[str] = None
     priority: Optional[str] = None
     response: Optional[str] = None
-
-
-# =========================
-# REWARD MODEL (OK TO KEEP)
-# =========================
-class Reward(BaseModel):
-    value: float
-
-
-# =========================
-# STATE MODEL
-# =========================
-class State(BaseModel):
-    emails: List[Email]
-    processed_ids: List[int]
-    score: float
