@@ -135,19 +135,20 @@ class EmailEnv:
                 "response": float(grade_hard(self._state)) or 0.01,
             }
         except Exception:
-            # 🚨 fallback → NEVER crash validator
             return {
                 "classification": 0.01,
                 "prioritization": 0.01,
                 "response": 0.01,
             }
 
-    # ✅ FIXED state (validator-safe)
+    # ✅ FINAL FIX (FLATTENED — VALIDATOR REQUIRED)
     def state(self):
         if self._state is None:
             self.reset()
 
         return {
-            "state": self._state.dict(),
+            "emails": self._state.emails,
+            "processed_ids": self._state.processed_ids,
+            "score": self._state.score,
             "scores": self.compute_scores()
         }
