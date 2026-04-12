@@ -6,11 +6,11 @@ entry_point: env.environment:EmailEnv
 inference: inference.py
 
 tasks:
-  - task_id: classification
+  - id: classification
     grader: env.graders:grade_easy
 
-  - task_id: prioritization
+  - id: prioritization
     grader: env.graders:grade_medium
 
-  - task_id: response
+  - id: response
     grader: env.graders:grade_hard
