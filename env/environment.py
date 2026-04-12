@@ -1,9 +1,9 @@
 import json
 from typing import Tuple
-from .models import Observation, Action, State, Email
+from env.models import Observation, Action, State, Email
 
 # ✅ import graders
-from .graders import grade_easy, grade_medium, grade_hard
+from env.graders import grade_easy, grade_medium, grade_hard
 
 
 class EmailEnv:
